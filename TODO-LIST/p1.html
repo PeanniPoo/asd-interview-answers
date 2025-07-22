@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To-Do List</title>
+    <style>
+        /* Basic page styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        /* Main container */
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Header */
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* Form styling */
+        .add-task-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .add-button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .add-button:hover {
+            background: #45a049;
+        }
+
+        /* Task list styling */
+        .task-list {
+            margin-top: 20px;
+        }
+
+        .task-item {
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .task-item.completed {
+            background: #f0f8f0;
+            border-color: #4CAF50;
+        }
+
+        .task-item.completed .task-title,
+        .task-item.completed .task-description {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .task-description {
+            margin: 0 0 10px 0;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .task-priority {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .priority-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .priority-low {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .task-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .task-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .complete-button {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .complete-button:hover {
+            background: #45a049;
+        }
+
+        .edit-button {
+            background: #2196F3;
+            color: white;
+        }
+
+        .edit-button:hover {
+            background: #1976D2;
+        }
+
+        .delete-button {
+            background: #f44336;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background: #d32f2f;
+        }
+
+        .undo-button {
+            background: #ff9800;
+            color: white;
+        }
+
+        .undo-button:hover {
+            background: #f57c00;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My To-Do List</h1>
+        
+        <!-- Add new task form -->
+        <div class="add-task-form">
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="title">Task Title</label>
+                    <input type="text" id="title" placeholder="What do you need to do?" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description (optional)</label>
+                    <textarea id="description" placeholder="Add more details about your task..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority">Priority Level</label>
+                    <select id="priority">
+                        <option value="high">High Priority</option>
+                        <option value="medium" selected>Medium Priority</option>
+                        <option value="low">Low Priority</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="add-button">Add Task</button>
+            </form>
+        </div>
+
+        <!-- Task list -->
+        <div class="task-list" id="taskList">
+            <div class="empty-state">
+                No tasks yet. Add one above!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get elements from the page
+        const taskForm = document.getElementById('taskForm');
+        const taskList = document.getElementById('taskList');
+        
+        // Store all tasks in an array
+        let tasks = [];
+
+        // When form is submitted, add new task
+        taskForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Don't refresh the page
+            
+            // Get values from form
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const priority = document.getElementById('priority').value;
+            
+            // Create new task object
+            const newTask = {
+                id: Date.now(), // Simple unique ID
+                title: title,
+                description: description,
+                priority: priority,
+                completed: false
+            };
+            
+            // Add task to our list
+            tasks.push(newTask);
+            
+            // Update the display
+            showTasks();
+            
+            // Clear the form
+            taskForm.reset();
+        });
+
+        // Show all tasks on the page
+        function showTasks() {
+            // Clear the task list
+            taskList.innerHTML = '';
+            
+            // If no tasks, show empty message
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<div class="empty-state">No tasks yet. Add one above!</div>';
+                return;
+            }
+            
+            // Create HTML for each task
+            tasks.forEach(function(task) {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task-item' + (task.completed ? ' completed' : '');
+                
+                taskDiv.innerHTML = `
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="task-priority priority-${task.priority}">${task.priority} Priority</div>
+                    <div class="task-buttons">
+                        <button class="task-button ${task.completed ? 'undo-button' : 'complete-button'}" 
+                                onclick="toggleComplete(${task.id})">
+                            ${task.completed ? 'Undo' : 'Complete'}
+                        </button>
+                        <button class="task-button edit-button" onclick="editTask(${task.id})">
+                            Edit
+                        </button>
+                        <button class="task-button delete-button" onclick="deleteTask(${task.id})">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                
+                taskList.appendChild(taskDiv);
+            });
+        }
+
+        // Mark task as complete or incomplete
+        function toggleComplete(taskId) {
+            const task = tasks.find(function(t) {
+                return t.id === taskId;
+            });
+            task.completed = !task.completed;
+            showTasks();
+        }
+
+        // Delete a task
+        function deleteTask(taskId) {
+            tasks = tasks.filter(function(t) {
+                return t.id !== taskId;
+            });
+            showTasks();
+        }
+
+        // Edit a task
+        function editTask(taskId) {
+            const task = tasks.find(function(t) {
+                return t.id === taskId;
+            });
+            
+            const newTitle = prompt("Edit task title:", task.title);
+            if (newTitle !== null && newTitle.trim() !== "") {
+                task.title = newTitle.trim();
+            }
+            
+            const newDescription = prompt("Edit description:", task.description);
+            if (newDescription !== null) {
+                task.description = newDescription.trim();
+            }
+            
+            const newPriority = prompt("Edit priority (high, medium, or low):", task.priority);
+            if (newPriority !== null && ['high', 'medium', 'low'].includes(newPriority.toLowerCase())) {
+                task.priority = newPriority.toLowerCase();
+            }
+            
+            showTasks();
+        }
+    </script>
+</body>
+</html>
